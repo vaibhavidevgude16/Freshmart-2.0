@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>FreshMart | Fresh groceries, delivered</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+
+  <body>
+    <header>
+      <a class="brand" href="#top"><span>✦</span> freshmart</a>
+      <nav>
+        <a href="#shop">Shop</a><a href="#why">Why FreshMart</a
+        ><a href="#profile" id="profileLink">Profile</a
+        ><a href="#orders" id="ordersLink">Orders</a
+        ><a href="/admin/login.html">Admin</a>
+      </nav>
+      <div class="actions">
+        <button class="text-btn" id="accountButton">Sign in</button
+        ><a class="text-btn admin-action" href="/admin/login.html">Admin</a
+        ><button class="bag" id="cartButton" aria-label="Open cart">
+          Bag <b id="cartCount">0</b>
+        </button>
+      </div>
+    </header>
+    <main id="top">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">GOOD FOOD, GOOD MOOD</p>
+          <h1>Freshness that<br /><em>finds you.</em></h1>
+          <p>
+            Real pantry staples, bright produce and everyday
+            favourites—delivered with care.
+          </p>
+          <a class="primary" href="#shop">Shop the market <span>→</span></a>
+          <div class="hero-notes">
+            <span>✓ Same-day slots</span><span>✓ Local product images</span>
+          </div>
+        </div>
+        <div class="hero-art">
+          <img src="/assets/products/apple.webp" alt="Fresh apples" />
+          <div class="round-label">FRESH<br />EVERYDAY</div>
+        </div>
+      </section>
+      <section class="feature-strip">
+        <span>Free delivery over ₹499</span><span>•</span
+        ><span>Handpicked with care</span><span>•</span
+        ><span>Secure checkout</span>
+      </section>
+      <section class="market" id="shop">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">THE MARKET</p>
+            <h2>Pick your essentials.</h2>
+          </div>
+          <p>Everything for a better everyday shop.</p>
+        </div>
+        <div class="filters">
+          <input
+            id="search"
+            placeholder="Search milk, snacks, vegetables..."
+          /><select id="category">
+            <option value="">All departments</option>
+          </select>
+        </div>
+        <div class="product-grid" id="products" aria-live="polite"></div>
+      </section>
+      <section class="why" id="why">
+        <div>
+          <p class="eyebrow">OUR PROMISE</p>
+          <h2>Simply better<br />grocery shopping.</h2>
+        </div>
+        <div class="promise-grid">
+          <article>
+            <b>01</b>
+            <h3>Fresh first</h3>
+            <p>Thoughtfully selected products for your home.</p>
+          </article>
+          <article>
+            <b>02</b>
+            <h3>Fair prices</h3>
+            <p>Everyday value without compromising quality.</p>
+          </article>
+          <article>
+            <b>03</b>
+            <h3>Easy delivery</h3>
+            <p>Order online and let the essentials come to you.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+    <footer>
+      <a class="brand" href="#top"><span>✦</span> freshmart</a>
+      <p>Small moments, made fresher.</p>
+      <p>© 2026 FreshMart Supermarket</p>
+    </footer>
+    <aside class="drawer" id="cartDrawer" aria-hidden="true">
+      <div class="drawer-head">
+        <h2>Your bag</h2>
+        <button class="close" data-close="cartDrawer">×</button>
+      </div>
+      <div id="cartItems"></div>
+      <div class="checkout">
+        <div><span>Subtotal</span><b id="cartTotal">₹0</b></div>
+        <button class="primary" id="checkoutButton">
+          Checkout <span>→</span>
+        </button>
+      </div>
+    </aside>
+    <div class="overlay" id="overlay"></div>
+    <dialog id="authDialog">
+      <button class="close dialog-close">×</button>
+      <p class="eyebrow" id="authKicker">WELCOME BACK</p>
+      <h2 id="authTitle">Sign in to FreshMart</h2>
+      <form id="authForm">
+        <label>
+          Name
+          <input name="name" id="nameInput" placeholder="Your name" />
+        </label>
+        <label>
+          Email
+          <input
+            name="email"
+            type="email"
+            required
+            placeholder="you@example.com"
+          />
+        </label>
+        <label>
+          Password
+          <span class="password-field">
+            <input
+              name="password"
+              id="passwordInput"
+              type="password"
+              required
+              minlength="6"
+              placeholder="At least 6 characters"
+            />
+            <button
+              type="button"
+              class="password-toggle"
+              id="passwordToggle"
+              aria-label="Show password"
+              aria-pressed="false"
+            >
+              Show
+            </button>
+          </span>
+        </label>
+        <button class="primary">Continue <span>→</span></button>
+      </form>
+      <button class="text-btn switch-auth" id="switchAuth">
+        New here? Create an account
+      </button>
+    </dialog>
+    <dialog id="checkoutDialog">
+      <button class="close dialog-close">×</button>
+      <p class="eyebrow">CHECKOUT</p>
+      <h2>Delivery and payment</h2>
+      <form id="checkoutForm">
+        <label>
+          Delivery address
+          <textarea
+            name="address"
+            required
+            placeholder="House number, street, city and PIN code"
+          ></textarea>
+        </label>
+        <label>
+          Delivery option
+          <select name="deliveryMethod" id="deliveryMethod">
+            <option value="Standard Delivery">
+              Standard Delivery - Rs. 40
+            </option>
+            <option value="Same-Day Delivery">
+              Same-Day Delivery - Rs. 80
+            </option>
+            <option value="Express 2-Hour Delivery">
+              Express 2-Hour Delivery - Rs. 120
+            </option>
+            <option value="Scheduled Morning Slot">
+              Scheduled Morning Slot - Rs. 60
+            </option>
+            <option value="Store Pickup">Store Pickup - Free</option>
+          </select>
+        </label>
+        <label>
+          Payment option
+          <select name="paymentMethod" id="paymentMethod">
+            <option>Cash on Delivery</option>
+            <option>UPI Payment</option>
+            <option>Debit / Credit Card</option>
+            <option>Net Banking</option>
+            <option>Wallet</option>
+          </select>
+        </label>
+        <div class="upi-qr-card" id="upiQrCard" hidden>
+          <div>
+            <span class="payment-status">Secure UPI payment</span>
+            <b>Scan and pay</b>
+            <p>
+              Open any UPI app, scan this QR, and pay
+              <strong id="upiQrAmount">Rs. 0</strong>.
+            </p>
+            <div class="payment-apps">
+              <span>Google Pay</span>
+              <span>PhonePe</span>
+              <span>Paytm</span>
+              <span>BHIM</span>
+            </div>
+            <small
+              >You can also place the order now and keep payment pending.</small
+            >
+          </div>
+          <img src="/assets/payment/upi-qr.jpeg" alt="UPI QR code" />
+        </div>
+        <div class="checkout-choice-summary" id="checkoutChoiceSummary"></div>
+        <button class="primary">Place order <span>→</span></button>
+      </form>
+    </dialog>
+    <div class="toast" id="toast"></div>
+    <script src="/app.js"></script>
+  </body>
+</html>

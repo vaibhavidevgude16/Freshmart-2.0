@@ -1,0 +1,7 @@
+.auth h1 {
+  color: var(--dark);
+}
+.auth .btn {
+  width: 100%;
+  margin-top: 8px;
+}

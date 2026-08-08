@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: freshmart-market
+    runtime: node
+    plan: free
+    rootDir: market
+    buildCommand: corepack enable && pnpm install --frozen-lockfile
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: PGSSLMODE
+        value: require
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_EMAIL
+        value: admin@freshmart.com
+      - key: ADMIN_PASSWORD
+        sync: false
