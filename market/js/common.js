@@ -110,6 +110,9 @@ function productCard(product) {
   const heartLabel = isWished ? "Remove from wishlist" : "Add to wishlist";
   const imageFit = product.imageFit || "contain";
   const imagePosition = product.imagePosition || "center";
+  const description =
+    product.description ||
+    `${product.brand} ${product.name} for everyday FreshMart shopping.`;
 
   return `
     <article class="card">
@@ -126,6 +129,7 @@ function productCard(product) {
       >
       <h3>${product.name}</h3>
       <div class="brand">${product.brand} · ${product.weight}</div>
+      <p class="card-description">${description}</p>
       <div class="card-meta">
         <span aria-label="Rating">★ ${product.rating}</span>
         <span class="${stockClass}">${stockLabel}</span>

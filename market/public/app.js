@@ -85,21 +85,25 @@ function productCard(product) {
   const discount = Math.round(
     (1 - product.price / product.originalPrice) * 100,
   );
+  const description =
+    product.description ||
+    `${product.brand} ${product.name} for everyday FreshMart shopping.`;
 
   return `
     <article class="product">
       <span class="pill">${discount}% OFF</span>
       <div class="product-image">
-        <img src="${product.image}" alt="${product.name}">
+        <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}">
       </div>
-      <h3>${product.name}</h3>
-      <p>${product.brand} · ${product.category}</p>
+      <h3>${escapeHtml(product.name)}</h3>
+      <p class="product-meta">${escapeHtml(product.brand)} · ${escapeHtml(product.category)}</p>
+      <p class="product-description">${escapeHtml(description)}</p>
       <div class="product-foot">
         <span class="price">
           ${money(product.price)}
           <span class="old">${money(product.originalPrice)}</span>
         </span>
-        <button class="add" data-add="${product.id}" aria-label="Add ${product.name}">
+        <button class="add" data-add="${product.id}" aria-label="Add ${escapeHtml(product.name)}">
           +
         </button>
       </div>
@@ -113,7 +117,7 @@ function renderProducts() {
   const items = state.products.filter(
     (product) =>
       (!category || product.category === category) &&
-      `${product.name} ${product.brand} ${product.category}`
+      `${product.name} ${product.brand} ${product.category} ${product.description || ""}`
         .toLowerCase()
         .includes(term),
   );

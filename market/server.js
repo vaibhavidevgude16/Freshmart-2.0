@@ -300,6 +300,75 @@ const categorySeeds = [
     "/assets/categories/frozen-foods.webp",
   ],
 ];
+const productDescriptions = {
+  "Amul Taaza Milk":
+    "Fresh toned milk for tea, coffee, cereal and everyday cooking.",
+  "Amul Butter":
+    "Creamy salted butter for toast, parathas, baking and quick snacks.",
+  "Britannia Bread":
+    "Soft sandwich bread for breakfast, tiffins and evening bites.",
+  "Aashirvaad Atta":
+    "Fine whole wheat flour for soft rotis and daily home meals.",
+  "India Gate Basmati Rice":
+    "Long-grain basmati rice with a fragrant aroma for pulao and biryani.",
+  "Tata Salt": "Iodized salt for everyday cooking and balanced seasoning.",
+  "Fortune Sunflower Oil":
+    "Light sunflower oil for frying, sauteing and daily cooking.",
+  "Maggi Noodles": "Quick masala noodles for a warm snack in minutes.",
+  "Parle-G Biscuits":
+    "Classic glucose biscuits for tea-time and lunchbox treats.",
+  "Oreo Biscuits":
+    "Chocolate sandwich biscuits with creamy filling for sweet cravings.",
+  "Coca-Cola": "Chilled cola drink for parties, meals and quick refreshment.",
+  Pepsi: "Refreshing cola drink for quick sips and meal combos.",
+  "Tropicana Juice":
+    "Ready-to-serve fruit juice for breakfast and anytime refreshment.",
+  "Surf Excel":
+    "Laundry detergent for removing tough stains from daily clothes.",
+  "Vim Dishwashing Liquid":
+    "Dishwashing liquid that cuts grease and leaves utensils clean.",
+  "Colgate Toothpaste":
+    "Daily toothpaste for fresh breath and strong teeth care.",
+  "Dettol Handwash": "Gentle handwash for everyday hygiene at home and work.",
+  "Dove Soap": "Moisturizing bathing bar for soft, fresh-feeling skin.",
+  "Clinic Plus Shampoo":
+    "Family shampoo for clean, manageable hair after every wash.",
+  "Fresh Tomatoes":
+    "Juicy tomatoes for curries, salads, sauces and everyday cooking.",
+  Potatoes: "Versatile potatoes for sabzis, snacks, fries and quick meals.",
+  Onions: "Fresh onions for gravies, tadka, salads and daily cooking.",
+  Bananas: "Naturally sweet bananas for breakfast, smoothies and snacks.",
+  Apples: "Crisp apples for healthy snacking, lunchboxes and fruit bowls.",
+  Oranges: "Juicy oranges packed for refreshing citrus flavor.",
+  "Green Peas": "Tender green peas for pulao, curries and frozen meal prep.",
+  Eggs: "Farm-fresh eggs for breakfast, baking and protein-rich meals.",
+  Paneer: "Soft paneer cubes for curries, starters and quick protein dishes.",
+  Curd: "Smooth curd for meals, raita, marinades and refreshing snacks.",
+  Cheese: "Creamy cheese for sandwiches, pizzas, rolls and toppings.",
+  "Fresh Apple Combo": "A value pack of crisp apples for the whole family.",
+  "Tomato Family Pack":
+    "A larger tomato pack for curries, soups and weekly cooking.",
+  "Brown Eggs 12 Pack":
+    "A dozen brown eggs for protein-rich breakfasts and baking.",
+  "Amul Cheese Slices":
+    "Ready cheese slices for burgers, sandwiches and quick snacks.",
+  "Royal Basmati Rice 5 kg":
+    "Aromatic basmati rice in a family-size pack for special meals.",
+  "Fortune Sunflower Oil 1 L":
+    "One-litre sunflower oil bottle for light everyday cooking.",
+  "Masala Noodles Family Pack":
+    "Family pack of masala noodles for fast, tasty snacks.",
+  "Chocolate Cream Biscuits":
+    "Crunchy chocolate cream biscuits for dessert-like tea breaks.",
+  "Mixed Fruit Juice 1 L":
+    "One-litre mixed fruit juice for breakfast and family refreshment.",
+  "Dettol Handwash Refill":
+    "Handwash refill pack for keeping dispensers ready at home.",
+  "Vim Dishwash Gel Refill":
+    "Dishwash gel refill for grease-cutting kitchen cleanup.",
+  "Frozen Green Peas 1 kg":
+    "One-kilo frozen peas pack for easy cooking through the week.",
+};
 const asyncHandler = (handler) => (req, res, next) =>
   Promise.resolve(handler(req, res, next)).catch(next);
 
@@ -402,6 +471,7 @@ async function initDatabase() {
 
   await seedCategories();
   await seedProducts();
+  await refreshSeedProductDescriptions();
   await seedAdmin();
 }
 
@@ -437,10 +507,36 @@ async function seedProducts() {
       product[4],
       product[5],
       `/assets/products/${product[6]}`,
-      `Quality ${product[0]} for your everyday needs.`,
+      descriptionFor(product[0], product[2]),
       index < 8 || index % 10 === 0,
     ]);
   }
+}
+
+async function refreshSeedProductDescriptions() {
+  for (const [index, product] of catalogue.entries()) {
+    await query(
+      `UPDATE products
+       SET description=$1
+       WHERE id=$2
+         AND (
+           description IS NULL
+           OR description = ''
+           OR description LIKE 'Quality % for your everyday needs.'
+         )`,
+      [
+        descriptionFor(product[0], product[2]),
+        `PROD${String(index + 1).padStart(3, "0")}`,
+      ],
+    );
+  }
+}
+
+function descriptionFor(name, category) {
+  return (
+    productDescriptions[name] ||
+    `FreshMart selected ${name.toLowerCase()} from ${category.toLowerCase()} for reliable everyday shopping.`
+  );
 }
 
 async function seedAdmin() {
