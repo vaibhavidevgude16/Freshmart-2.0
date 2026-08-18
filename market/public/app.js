@@ -81,29 +81,46 @@ function paymentStatusFor(method) {
   return paymentStatuses[method] || "Pending";
 }
 
-function productCard(product) {
-  const discount = Math.round(
-    (1 - product.price / product.originalPrice) * 100,
+function discountFor(product) {
+  return Math.max(
+    0,
+    Math.round((1 - product.price / product.originalPrice) * 100),
   );
-  const description =
+}
+
+function descriptionForProduct(product) {
+  return (
     product.description ||
-    `${product.brand} ${product.name} for everyday FreshMart shopping.`;
+    `${product.brand} ${product.name} for everyday FreshMart shopping.`
+  );
+}
+
+function productCard(product) {
+  const discount = discountFor(product);
+  const description = descriptionForProduct(product);
 
   return `
-    <article class="product">
+    <article class="product" data-card-view="${escapeHtml(product.id)}">
       <span class="pill">${discount}% OFF</span>
-      <div class="product-image">
-        <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}">
-      </div>
-      <h3>${escapeHtml(product.name)}</h3>
-      <p class="product-meta">${escapeHtml(product.brand)} · ${escapeHtml(product.category)}</p>
-      <p class="product-description">${escapeHtml(description)}</p>
+      <a
+        class="product-click"
+        href="#product-${escapeHtml(product.id)}"
+        data-view="${escapeHtml(product.id)}"
+        aria-label="View details for ${escapeHtml(product.name)}"
+      >
+        <div class="product-image">
+          <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}">
+        </div>
+        <h3>${escapeHtml(product.name)}</h3>
+        <p class="product-meta">${escapeHtml(product.brand)} · ${escapeHtml(product.category)}</p>
+        <p class="product-description">${escapeHtml(description)}</p>
+      </a>
       <div class="product-foot">
         <span class="price">
           ${money(product.price)}
           <span class="old">${money(product.originalPrice)}</span>
         </span>
-        <button class="add" data-add="${product.id}" aria-label="Add ${escapeHtml(product.name)}">
+        <button class="add" data-add="${escapeHtml(product.id)}" aria-label="Add ${escapeHtml(product.name)}">
           +
         </button>
       </div>
@@ -127,8 +144,103 @@ function renderProducts() {
     : '<p class="empty">No items match that search.</p>';
 
   document.querySelectorAll("[data-add]").forEach((button) => {
-    button.onclick = () => addToCart(button.dataset.add);
+    button.onclick = (event) => {
+      event.stopPropagation();
+      addToCart(button.dataset.add);
+    };
   });
+
+  document.querySelectorAll("[data-view]").forEach((link) => {
+    link.onclick = (event) => {
+      event.preventDefault();
+      openProductDetails(link.dataset.view);
+    };
+  });
+
+  document.querySelectorAll("[data-card-view]").forEach((card) => {
+    card.onclick = (event) => {
+      if (event.target.closest("a, button, input, select, textarea")) return;
+      openProductDetails(card.dataset.cardView);
+    };
+  });
+}
+
+function openProductDetails(id) {
+  const product = state.products.find((item) => item.id === id);
+
+  if (!product) return toast("Product not found");
+
+  const discount = discountFor(product);
+  const description = descriptionForProduct(product);
+  const stockLabel = product.stock
+    ? `${product.stock} available`
+    : "Out of stock";
+  const detailRows = [
+    ["Brand", product.brand],
+    ["Category", product.category],
+    ["Pack size", product.weight || product.unit],
+    [
+      "Rating",
+      product.rating ? `★ ${Number(product.rating).toFixed(1)}` : "Popular pick",
+    ],
+    ["Stock", stockLabel],
+  ].filter(([, value]) => value);
+  const imageFit = product.imageFit || "contain";
+  const imagePosition = product.imagePosition || "center";
+
+  $("#productDetails").innerHTML = `
+    <div class="product-detail">
+      <div class="product-detail-image">
+        <img
+          src="${escapeHtml(product.image)}"
+          alt="${escapeHtml(product.name)}"
+          style="object-fit:${escapeHtml(imageFit)};object-position:${escapeHtml(imagePosition)}"
+        >
+      </div>
+      <div class="product-detail-copy">
+        <span class="pill detail-pill">${discount}% OFF</span>
+        <h3>${escapeHtml(product.name)}</h3>
+        <p class="product-detail-meta">
+          ${escapeHtml(product.brand)} · ${escapeHtml(product.category)}
+        </p>
+        <p class="product-detail-description">${escapeHtml(description)}</p>
+        <div class="detail-price">
+          ${money(product.price)}
+          <span class="old">${money(product.originalPrice)}</span>
+        </div>
+        <dl class="product-detail-list">
+          ${detailRows
+            .map(
+              ([label, value]) => `
+                <div>
+                  <dt>${escapeHtml(label)}</dt>
+                  <dd>${escapeHtml(value)}</dd>
+                </div>
+              `,
+            )
+            .join("")}
+        </dl>
+        <button
+          class="primary"
+          id="productDetailAdd"
+          type="button"
+          ${product.stock ? "" : "disabled"}
+        >
+          Add to bag <span>→</span>
+        </button>
+      </div>
+    </div>
+  `;
+
+  const addButton = $("#productDetailAdd");
+  const dialog = $("#productDialog");
+
+  if (addButton) {
+    addButton.onclick = () => addToCart(product.id);
+  }
+  if (!dialog.open) {
+    dialog.showModal();
+  }
 }
 
 function addToCart(id) {
@@ -451,6 +563,13 @@ document.querySelectorAll("[data-close]").forEach((button) => {
 $(".dialog-close").onclick = () => $("#authDialog").close();
 $("#checkoutDialog").querySelector(".dialog-close").onclick = () =>
   $("#checkoutDialog").close();
+$("#productDialog").querySelector(".product-dialog-close").onclick = () =>
+  $("#productDialog").close();
+$("#productDialog").onclick = (event) => {
+  if (event.target === event.currentTarget) {
+    $("#productDialog").close();
+  }
+};
 $("#accountButton").onclick = () => (state.user ? showProfile() : openAuth());
 $("#switchAuth").onclick = () => {
   state.register = !state.register;

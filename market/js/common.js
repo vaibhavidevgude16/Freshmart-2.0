@@ -93,6 +93,37 @@ function updateCounts() {
   }
 }
 
+function escapeHtml(value = "") {
+  return String(value).replace(
+    /[&<>"']/g,
+    (char) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[char],
+  );
+}
+
+function jsString(value = "") {
+  return String(value).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+}
+
+function productDiscount(product) {
+  if (Number.isFinite(Number(product.discount))) return Number(product.discount);
+
+  return Math.max(
+    0,
+    Math.round(
+      ((Number(product.originalPrice) - Number(product.sellingPrice)) /
+        Number(product.originalPrice)) *
+        100,
+    ),
+  );
+}
+
 function productCard(product) {
   const stockLabel = product.stock
     ? product.stock <= product.minimumStock
@@ -113,42 +144,55 @@ function productCard(product) {
   const description =
     product.description ||
     `${product.brand} ${product.name} for everyday FreshMart shopping.`;
+  const productId = jsString(product.id);
+  const actionProductId = escapeHtml(productId);
+  const escapedProductId = escapeHtml(product.id);
+  const detailsHref = `product-details.html?id=${encodeURIComponent(
+    product.id,
+  )}`;
 
   return `
     <article class="card">
-      <span class="badge">${product.discount}% OFF</span>
-      <button class="icon-btn wish-btn" aria-label="${heartLabel}" onclick="wish('${product.id}')">
+      <span class="badge">${productDiscount(product)}% OFF</span>
+      <button class="icon-btn wish-btn" aria-label="${escapeHtml(heartLabel)}" onclick="wish('${actionProductId}')">
         <i class="${heartClass} fa-heart"></i>
       </button>
-      <img
-        src="${FM.imageUrl(product.image)}"
-        alt="${product.name}"
-        loading="lazy"
-        style="object-fit:${imageFit};object-position:${imagePosition}"
-        onerror="FM.imageError(event)"
+      <a
+        class="card-detail-trigger"
+        href="${escapeHtml(detailsHref)}"
+        onclick="openProductWindow('${actionProductId}', event)"
+        aria-label="View details for ${escapeHtml(product.name)}"
       >
-      <h3>${product.name}</h3>
-      <div class="brand">${product.brand} · ${product.weight}</div>
-      <p class="card-description">${description}</p>
-      <div class="card-meta">
-        <span aria-label="Rating">★ ${product.rating}</span>
-        <span class="${stockClass}">${stockLabel}</span>
-      </div>
-      <div class="price">
-        ${FM.money(product.sellingPrice)}
-        <span class="old">${FM.money(product.originalPrice)}</span>
-      </div>
-      <div class="qty-control" aria-label="Quantity for ${product.name}">
+        <img
+          src="${escapeHtml(FM.imageUrl(product.image))}"
+          alt="${escapeHtml(product.name)}"
+          loading="lazy"
+          style="object-fit:${escapeHtml(imageFit)};object-position:${escapeHtml(imagePosition)}"
+          onerror="FM.imageError(event)"
+        >
+        <h3>${escapeHtml(product.name)}</h3>
+        <div class="brand">${escapeHtml(product.brand)} · ${escapeHtml(product.weight)}</div>
+        <p class="card-description">${escapeHtml(description)}</p>
+        <div class="card-meta">
+          <span aria-label="Rating">★ ${escapeHtml(product.rating)}</span>
+          <span class="${stockClass}">${escapeHtml(stockLabel)}</span>
+        </div>
+        <div class="price">
+          ${FM.money(product.sellingPrice)}
+          <span class="old">${FM.money(product.originalPrice)}</span>
+        </div>
+      </a>
+      <div class="qty-control" aria-label="Quantity for ${escapeHtml(product.name)}">
         <button
           class="icon-btn"
           ${disabled}
           aria-label="Decrease quantity"
-          onclick="cardQty('${product.id}', -1)"
+          onclick="cardQty('${actionProductId}', -1)"
         >
           −
         </button>
         <input
-          id="cardQty-${product.id}"
+          id="cardQty-${escapedProductId}"
           value="1"
           readonly
           aria-label="Selected quantity"
@@ -157,7 +201,7 @@ function productCard(product) {
           class="icon-btn"
           ${disabled}
           aria-label="Increase quantity"
-          onclick="cardQty('${product.id}', 1)"
+          onclick="cardQty('${actionProductId}', 1)"
         >
           +
         </button>
@@ -166,20 +210,124 @@ function productCard(product) {
         <button
           class="btn"
           ${disabled}
-          onclick="addCart('${product.id}', Number(document.querySelector('#cardQty-${product.id}').value))"
+          onclick="addCart('${actionProductId}', cardQtyValue('${actionProductId}'))"
         >
           Add to cart
         </button>
-        <a
+        <button
           class="icon-btn"
-          href="product-details.html?id=${product.id}"
-          aria-label="View ${product.name} details"
+          type="button"
+          onclick="openProductWindow('${actionProductId}', event)"
+          aria-label="View ${escapeHtml(product.name)} details"
         >
           <i class="fa-solid fa-arrow-right"></i>
-        </a>
+        </button>
       </div>
     </article>
   `;
+}
+
+function ensureProductModal() {
+  let modal = document.querySelector("#productModal");
+
+  if (modal) return modal;
+
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    `
+      <dialog class="product-modal" id="productModal">
+        <button
+          class="icon-btn product-modal-close"
+          type="button"
+          aria-label="Close product details"
+          onclick="document.querySelector('#productModal').close()"
+        >
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="product-modal-body"></div>
+      </dialog>
+    `,
+  );
+
+  modal = document.querySelector("#productModal");
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal) modal.close();
+  });
+
+  return modal;
+}
+
+function openProductWindow(id, event) {
+  event?.preventDefault();
+  event?.stopPropagation();
+
+  const product = FM.products().find((item) => item.id === id);
+
+  if (!product) return FM.toast("Product not found");
+
+  const modal = ensureProductModal();
+  const stockLabel = product.stock ? `${product.stock} available` : "Out of stock";
+  const disabled = product.stock ? "" : "disabled";
+  const imageFit = product.imageFit || "contain";
+  const imagePosition = product.imagePosition || "center";
+  const description =
+    product.description ||
+    `${product.brand} ${product.name} for everyday FreshMart shopping.`;
+  const rows = [
+    ["Brand", product.brand],
+    ["Category", product.category],
+    ["Pack size", product.weight],
+    ["Rating", product.rating ? `★ ${Number(product.rating).toFixed(1)}` : ""],
+    ["Stock", stockLabel],
+    ["Ingredients", product.ingredients],
+    ["Storage", product.storageInstructions],
+  ].filter(([, value]) => value);
+  const productId = jsString(product.id);
+  const actionProductId = escapeHtml(productId);
+
+  modal.querySelector(".product-modal-body").innerHTML = `
+    <div class="product-modal-grid">
+      <div class="product-modal-image">
+        <img
+          src="${escapeHtml(FM.imageUrl(product.image))}"
+          alt="${escapeHtml(product.name)}"
+          style="object-fit:${escapeHtml(imageFit)};object-position:${escapeHtml(imagePosition)}"
+          onerror="FM.imageError(event)"
+        >
+      </div>
+      <div class="product-modal-copy">
+        <span class="badge">${productDiscount(product)}% OFF</span>
+        <h2>${escapeHtml(product.name)}</h2>
+        <p class="sub">${escapeHtml(product.brand)} · ${escapeHtml(product.category)}</p>
+        <p>${escapeHtml(description)}</p>
+        <div class="price">
+          ${FM.money(product.sellingPrice)}
+          <span class="old">${FM.money(product.originalPrice)}</span>
+        </div>
+        <dl class="product-modal-list">
+          ${rows
+            .map(
+              ([label, value]) => `
+                <div>
+                  <dt>${escapeHtml(label)}</dt>
+                  <dd>${escapeHtml(value)}</dd>
+                </div>
+              `,
+            )
+            .join("")}
+        </dl>
+        <button
+          class="btn"
+          ${disabled}
+          onclick="addCart('${actionProductId}', 1)"
+        >
+          Add to cart
+        </button>
+      </div>
+    </div>
+  `;
+
+  if (!modal.open) modal.showModal();
 }
 
 function addCart(id, quantity = 1) {
@@ -208,7 +356,7 @@ function addCart(id, quantity = 1) {
 
 function cardQty(id, amount) {
   const product = FM.products().find((item) => item.id === id);
-  const input = document.querySelector("#cardQty-" + id);
+  const input = document.getElementById("cardQty-" + id);
 
   if (!product || !input) return;
 
@@ -216,6 +364,10 @@ function cardQty(id, amount) {
     1,
     Math.min(product.stock, Number(input.value || 1) + amount),
   );
+}
+
+function cardQtyValue(id) {
+  return Number(document.getElementById("cardQty-" + id)?.value || 1);
 }
 
 function wish(id) {

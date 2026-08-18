@@ -251,10 +251,27 @@ textarea {
 }
 .product {
   background: #fffdf8;
+  cursor: pointer;
   display: flex;
   flex-direction: column;
   padding: 16px;
   position: relative;
+}
+.product-click {
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  text-decoration: none;
+}
+.product-click:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 4px;
+}
+.product-click:hover h3 {
+  color: var(--green);
 }
 .product-image {
   height: 185px;
@@ -630,6 +647,77 @@ select {
   font-size: 16px;
   padding-top: 8px;
 }
+.product-dialog {
+  max-width: 780px;
+}
+.product-detail {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: minmax(220px, 0.9fr) 1.1fr;
+}
+.product-detail-image {
+  background: #f4f5ec;
+  display: grid;
+  min-height: 330px;
+  place-items: center;
+}
+.product-detail-image img {
+  height: 100%;
+  max-height: 360px;
+  max-width: 100%;
+  mix-blend-mode: multiply;
+  width: 100%;
+}
+.product-detail-copy {
+  display: grid;
+  gap: 13px;
+}
+.detail-pill {
+  position: static;
+  width: max-content;
+}
+.product-detail h3 {
+  font-family: "Playfair Display", serif;
+  font-size: 34px;
+  line-height: 1.05;
+  margin: 0;
+}
+.product-detail-meta,
+.product-detail-description {
+  color: var(--muted);
+  line-height: 1.55;
+  margin: 0;
+}
+.detail-price {
+  color: var(--green);
+  font-size: 22px;
+  font-weight: 800;
+}
+.product-detail-list {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+}
+.product-detail-list div {
+  background: #f5f7ef;
+  border: 1px solid var(--line);
+  padding: 10px;
+}
+.product-detail-list dt {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.product-detail-list dd {
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+}
+.primary[disabled] {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
 form .primary {
   justify-content: space-between;
 }
@@ -748,6 +836,15 @@ form .primary {
   }
   .upi-qr-card {
     justify-items: start;
+    grid-template-columns: 1fr;
+  }
+  .product-detail {
+    grid-template-columns: 1fr;
+  }
+  .product-detail-image {
+    min-height: 240px;
+  }
+  .product-detail-list {
     grid-template-columns: 1fr;
   }
 }

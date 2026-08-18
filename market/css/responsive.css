@@ -90,6 +90,15 @@
   .review-box {
     grid-template-columns: 1fr;
   }
+  .product-modal-grid {
+    grid-template-columns: 1fr;
+  }
+  .product-modal-image {
+    min-height: 260px;
+  }
+  .product-modal-list {
+    grid-template-columns: 1fr;
+  }
 }
 @media (max-width: 450px) {
   .grid {

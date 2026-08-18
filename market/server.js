@@ -610,7 +610,13 @@ function publicProduct(row) {
     stock: Number(row.stock),
     image: row.image,
     description: row.description || "",
+    minimumStock: Number(row.minimum_stock ?? 5),
+    weight: row.weight || "1 Pack",
+    unit: row.unit || "Pack",
+    rating: Number(row.rating || 4.5),
     featured: Boolean(row.featured),
+    imageFit: row.image_fit || "contain",
+    imagePosition: row.image_position || "center",
   };
 }
 
